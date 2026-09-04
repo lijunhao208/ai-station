@@ -1,0 +1,68 @@
+server:
+  port: 8099
+
+# 线程池配置
+thread:
+  pool:
+    executor:
+      config:
+        core-pool-size: 20
+        max-pool-size: 50
+        keep-alive-time: 5000
+        block-queue-size: 5000
+        policy: CallerRunsPolicy
+
+# 数据库配置；通过环境变量注入敏感信息
+spring:
+  datasource:
+    mysql:
+      username: ${MYSQL_USERNAME:root}
+      password: ${MYSQL_PASSWORD:your-password}
+      url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3306/ai-agent-station-study?useUnicode=true&characterEncoding=utf8&autoReconnect=true&zeroDateTimeBehavior=convertToNull&serverTimezone=Asia/Shanghai&useSSL=true}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      hikari:
+        pool-name: Retail_HikariCP
+        minimum-idle: 15
+        idle-timeout: 180000
+        maximum-pool-size: 25
+        auto-commit: true
+        max-lifetime: 1800000
+        connection-timeout: 30000
+        connection-test-query: SELECT 1
+    pgvector:
+      driver-class-name: org.postgresql.Driver
+      username: ${PG_USERNAME:postgres}
+      password: ${PG_PASSWORD:your-password}
+      url: ${PG_URL:jdbc:postgresql://127.0.0.1:5432/ai-rag-knowledge}
+      type: com.zaxxer.hikari.HikariDataSource
+      hikari:
+        maximum-pool-size: 5
+        minimum-idle: 2
+        idle-timeout: 30000
+        connection-timeout: 30000
+  ai:
+    openai:
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      api-key: ${OPENAI_API_KEY:YOUR_API_KEY}
+    agent:
+      auto-config:
+        enabled: true
+
+# 任务调度配置
+app:
+  task:
+    job:
+      enabled: true
+      pool-size: 5
+      thread-name-prefix: "test-task-scheduler-"
+      wait-for-tasks-to-complete-on-shutdown: true
+      await-termination-seconds: 30
+      refresh-interval: 30000
+      clean-invalid-tasks-cron: "0 0/5 * * * ?"
+
+# 日志
+logging:
+  level:
+    root: info
+  config: classpath:logback-spring.xml

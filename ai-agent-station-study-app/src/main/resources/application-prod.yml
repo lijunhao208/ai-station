@@ -1,0 +1,27 @@
+server:
+  port: 8091
+
+# 线程池配置
+thread:
+  pool:
+    executor:
+      config:
+        core-pool-size: 20
+        max-pool-size: 50
+        keep-alive-time: 5000
+        block-queue-size: 5000
+        policy: CallerRunsPolicy
+
+# 生产环境请通过环境变量注入数据源与 API Key，勿将真实密钥写入仓库
+# spring:
+#   datasource:
+#     username: ${MYSQL_USERNAME}
+#     password: ${MYSQL_PASSWORD}
+#     url: ${MYSQL_URL}
+#     driver-class-name: com.mysql.cj.jdbc.Driver
+
+# 日志
+logging:
+  level:
+    root: info
+  config: classpath:logback-spring.xml

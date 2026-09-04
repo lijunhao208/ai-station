@@ -1,0 +1,57 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+/ai-agent-station-study-app/data/
+/data/
+/ai-agent-station-study-app/.local-config
+
+### Local secrets (do not commit)
+.env
+.env.*
+!.env.example
+**/application-local.yml
+**/application-*.local.yml
+**/.local-config/
+**/local-config/
+
+### Python
+**/venv/
+**/__pycache__/
+*.pyc
+
+### Personal / IDE agent (do not publish)
+/resume-deliverables/
+/.cursor/
