@@ -8,7 +8,7 @@ import com.aiagent.station.types.enums.ResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 数据统计
@@ -18,7 +18,6 @@ import javax.annotation.Resource;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/admin/data/statistics")
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class AiAgentDataStatisticsAdminController implements IAiAgentDataStatisticsAdminService {
 
     @Resource

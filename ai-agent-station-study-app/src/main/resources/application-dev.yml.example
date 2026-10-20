@@ -51,6 +51,16 @@ spring:
 
 # 任务调度配置
 app:
+  auth:
+    enabled: true
+    jwt-secret: ${APP_AUTH_JWT_SECRET:change-me-ai-agent-station-jwt-secret}
+    token-expire-hours: ${APP_AUTH_TOKEN_EXPIRE_HOURS:24}
+    cors-allowed-origins:
+      - http://localhost:8080
+      - http://127.0.0.1:8080
+    permit-paths:
+      - /api/v1/admin/admin-user/login
+      - /api/v1/admin/admin-user/validate-login
   task:
     job:
       enabled: true

@@ -11,16 +11,17 @@ import com.aiagent.station.domain.agent.model.valobj.AiAgentVO;
 import com.aiagent.station.domain.agent.service.IAgentDispatchService;
 import com.aiagent.station.domain.agent.service.IArmoryService;
 import com.aiagent.station.domain.agent.service.armory.node.factory.DefaultArmoryStrategyFactory;
+import com.aiagent.station.trigger.http.stream.ResponseBodyEmitterPublisher;
 import com.aiagent.station.types.common.Constants;
 import com.aiagent.station.types.enums.ResponseCode;
 import com.alibaba.fastjson.JSON;
+import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,6 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/agent")
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS})
 public class AiAgentController implements IAiAgentService {
 
     @Resource
@@ -51,8 +51,8 @@ public class AiAgentController implements IAiAgentService {
             response.setHeader("Cache-Control", "no-cache");
             response.setHeader("Connection", "keep-alive");
 
-            // 1. 创建流式输出对象
-            ResponseBodyEmitter emitter = new ResponseBodyEmitter(Long.MAX_VALUE);
+            // 1. 创建流式输出对象（30 分钟超时，避免无限挂起）
+            ResponseBodyEmitter emitter = new ResponseBodyEmitter(30 * 60 * 1000L);
 
             // 2. 构建执行命令实体
             ExecuteCommandEntity executeCommandEntity = ExecuteCommandEntity.builder()
@@ -62,8 +62,8 @@ public class AiAgentController implements IAiAgentService {
                     .maxStep(request.getMaxStep())
                     .build();
 
-            // 3. 调度处理
-            agentDispatchService.dispatch(executeCommandEntity, emitter);
+            // 3. 调度处理（HTTP SSE 适配为领域流端口）
+            agentDispatchService.dispatch(executeCommandEntity, new ResponseBodyEmitterPublisher(emitter));
 
             return emitter;
 

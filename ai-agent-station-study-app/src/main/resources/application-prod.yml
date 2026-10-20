@@ -20,6 +20,13 @@ thread:
 #     url: ${MYSQL_URL}
 #     driver-class-name: com.mysql.cj.jdbc.Driver
 
+app:
+  auth:
+    enabled: true
+    jwt-secret: ${APP_AUTH_JWT_SECRET}
+    token-expire-hours: ${APP_AUTH_TOKEN_EXPIRE_HOURS:12}
+    cors-allowed-origins: ${APP_AUTH_CORS_ORIGINS:https://your-frontend.example.com}
+
 # 日志
 logging:
   level:

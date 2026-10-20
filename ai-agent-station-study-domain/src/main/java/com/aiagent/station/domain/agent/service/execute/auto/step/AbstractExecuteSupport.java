@@ -1,20 +1,18 @@
 package com.aiagent.station.domain.agent.service.execute.auto.step;
 
+import com.aiagent.station.domain.agent.adapter.port.AgentStreamPublisher;
 import com.aiagent.station.domain.agent.adapter.repository.IAgentRepository;
 import com.aiagent.station.domain.agent.model.entity.AutoAgentExecuteResultEntity;
 import com.aiagent.station.domain.agent.model.entity.ExecuteCommandEntity;
 import com.aiagent.station.domain.agent.model.valobj.enums.AiAgentEnumVO;
 import com.aiagent.station.domain.agent.service.execute.auto.step.factory.DefaultAutoAgentExecuteStrategyFactory;
 import com.aiagent.station.framework.tree.AbstractMultiThreadStrategyRouter;
-import com.alibaba.fastjson.JSON;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.context.ApplicationContext;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -52,16 +50,14 @@ public abstract class AbstractExecuteSupport extends AbstractMultiThreadStrategy
      * @param dynamicContext 动态上下文
      * @param result 要发送的结果实体
      */
-    protected void sendSseResult(DefaultAutoAgentExecuteStrategyFactory.DynamicContext dynamicContext, 
-                                AutoAgentExecuteResultEntity result) {
+    protected void sendSseResult(DefaultAutoAgentExecuteStrategyFactory.DynamicContext dynamicContext,
+                                 AutoAgentExecuteResultEntity result) {
         try {
-            ResponseBodyEmitter emitter = dynamicContext.getValue("emitter");
-            if (emitter != null) {
-                // 发送SSE格式的数据
-                String sseData = "data: " + JSON.toJSONString(result) + "\n\n";
-                emitter.send(sseData);
+            AgentStreamPublisher publisher = dynamicContext.getValue("emitter");
+            if (publisher != null) {
+                publisher.sendJson(result);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             log.error("发送SSE结果失败：{}", e.getMessage(), e);
         }
     }

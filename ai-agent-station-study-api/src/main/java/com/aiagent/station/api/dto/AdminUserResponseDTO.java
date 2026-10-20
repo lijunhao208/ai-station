@@ -40,6 +40,11 @@ public class AdminUserResponseDTO implements Serializable {
     private String username;
 
     /**
+     * 登录成功后下发的访问令牌（Bearer Token）
+     */
+    private String token;
+
+    /**
      * 状态(0:禁用,1:启用,2:锁定)
      */
     private Integer status;

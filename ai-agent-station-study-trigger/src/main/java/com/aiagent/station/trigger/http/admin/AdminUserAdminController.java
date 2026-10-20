@@ -8,14 +8,15 @@ import com.aiagent.station.api.dto.AdminUserResponseDTO;
 import com.aiagent.station.api.response.Response;
 import com.aiagent.station.infrastructure.dao.IAdminUserDao;
 import com.aiagent.station.infrastructure.dao.po.AdminUser;
+import com.aiagent.station.trigger.auth.JwtTokenProvider;
+import com.aiagent.station.trigger.auth.PasswordHasher;
 import com.aiagent.station.types.enums.ResponseCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
-import java.math.BigDecimal;
+import jakarta.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,11 +30,16 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/admin/admin-user")
-@CrossOrigin(origins = "*", allowedHeaders = "*", methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
 public class AdminUserAdminController implements IAdminUserAdminService {
 
     @Resource
     private IAdminUserDao adminUserDao;
+
+    @Resource
+    private PasswordHasher passwordHasher;
+
+    @Resource
+    private JwtTokenProvider jwtTokenProvider;
 
     @Override
     @PostMapping("/create")
@@ -43,6 +49,9 @@ public class AdminUserAdminController implements IAdminUserAdminService {
             
             // DTO转PO
             AdminUser adminUser = convertToAdminUser(request);
+            if (StringUtils.hasText(adminUser.getPassword())) {
+                adminUser.setPassword(passwordHasher.encode(adminUser.getPassword()));
+            }
             adminUser.setCreateTime(LocalDateTime.now());
             adminUser.setUpdateTime(LocalDateTime.now());
             
@@ -79,6 +88,9 @@ public class AdminUserAdminController implements IAdminUserAdminService {
             
             // DTO转PO
             AdminUser adminUser = convertToAdminUser(request);
+            if (StringUtils.hasText(adminUser.getPassword())) {
+                adminUser.setPassword(passwordHasher.encode(adminUser.getPassword()));
+            }
             adminUser.setUpdateTime(LocalDateTime.now());
             
             int result = adminUserDao.updateById(adminUser);
@@ -114,6 +126,9 @@ public class AdminUserAdminController implements IAdminUserAdminService {
             
             // DTO转PO
             AdminUser adminUser = convertToAdminUser(request);
+            if (StringUtils.hasText(adminUser.getPassword())) {
+                adminUser.setPassword(passwordHasher.encode(adminUser.getPassword()));
+            }
             adminUser.setUpdateTime(LocalDateTime.now());
             
             int result = adminUserDao.updateByUserId(adminUser);
@@ -410,35 +425,52 @@ public class AdminUserAdminController implements IAdminUserAdminService {
     public Response<AdminUserResponseDTO> loginAdminUser(@RequestBody AdminUserLoginRequestDTO request) {
         try {
             log.info("管理员用户登录请求：{}", request.getUsername());
-            
-            AdminUser adminUser = adminUserDao.queryByUsernameAndPassword(request.getUsername(), request.getPassword());
-            if (adminUser == null) {
+
+            if (!StringUtils.hasText(request.getUsername()) || !StringUtils.hasText(request.getPassword())) {
                 return Response.<AdminUserResponseDTO>builder()
                         .code(ResponseCode.ILLEGAL_PARAMETER.getCode())
+                        .info("用户名或密码不能为空")
+                        .data(null)
+                        .build();
+            }
+
+            AdminUser adminUser = adminUserDao.queryByUsername(request.getUsername());
+            if (adminUser == null || !passwordHasher.matches(request.getPassword(), adminUser.getPassword())) {
+                return Response.<AdminUserResponseDTO>builder()
+                        .code(ResponseCode.LOGIN_FAILED.getCode())
                         .info("用户名或密码错误")
                         .data(null)
                         .build();
             }
-            
+
             // 检查用户状态
-            if (adminUser.getStatus() == 0) {
+            if (adminUser.getStatus() != null && adminUser.getStatus() == 0) {
                 return Response.<AdminUserResponseDTO>builder()
-                        .code(ResponseCode.ILLEGAL_PARAMETER.getCode())
+                        .code(ResponseCode.LOGIN_FAILED.getCode())
                         .info("用户已被禁用")
                         .data(null)
                         .build();
             }
-            
-            if (adminUser.getStatus() == 2) {
+
+            if (adminUser.getStatus() != null && adminUser.getStatus() == 2) {
                 return Response.<AdminUserResponseDTO>builder()
-                        .code(ResponseCode.ILLEGAL_PARAMETER.getCode())
+                        .code(ResponseCode.LOGIN_FAILED.getCode())
                         .info("用户已被锁定")
                         .data(null)
                         .build();
             }
-            
+
+            // 明文历史密码登录成功后升级为 BCrypt
+            if (passwordHasher.needsUpgrade(adminUser.getPassword())) {
+                adminUser.setPassword(passwordHasher.encode(request.getPassword()));
+                adminUser.setUpdateTime(LocalDateTime.now());
+                adminUserDao.updateById(adminUser);
+                log.info("已升级用户密码哈希 username={}", adminUser.getUsername());
+            }
+
             AdminUserResponseDTO responseDTO = convertToAdminUserResponseDTO(adminUser);
-            
+            responseDTO.setToken(jwtTokenProvider.createToken(adminUser.getUserId(), adminUser.getUsername()));
+
             return Response.<AdminUserResponseDTO>builder()
                     .code(ResponseCode.SUCCESS.getCode())
                     .info(ResponseCode.SUCCESS.getInfo())
@@ -469,9 +501,8 @@ public class AdminUserAdminController implements IAdminUserAdminService {
                         .build();
             }
             
-            // 查询用户
-            AdminUser adminUser = adminUserDao.queryByUsernameAndPassword(request.getUsername(), request.getPassword());
-            if (adminUser == null) {
+            AdminUser adminUser = adminUserDao.queryByUsername(request.getUsername());
+            if (adminUser == null || !passwordHasher.matches(request.getPassword(), adminUser.getPassword())) {
                 return Response.<Boolean>builder()
                         .code(ResponseCode.LOGIN_FAILED.getCode())
                         .info(ResponseCode.LOGIN_FAILED.getInfo())

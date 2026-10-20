@@ -1,16 +1,16 @@
 package com.aiagent.station.trigger.job;
 
+import com.aiagent.station.domain.agent.adapter.port.AgentStreamPublisher;
 import com.aiagent.station.domain.agent.model.entity.ExecuteCommandEntity;
 import com.aiagent.station.domain.agent.model.valobj.AiAgentTaskScheduleVO;
 import com.aiagent.station.domain.agent.service.IAgentDispatchService;
 import com.aiagent.station.domain.agent.service.ITaskService;
 import com.aiagent.station.types.job.model.TaskScheduleVO;
 import com.aiagent.station.types.job.provider.ITaskDataProvider;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,7 +46,8 @@ public class AgentTaskJob implements ITaskDataProvider {
                                     .aiAgentId(aiAgentTaskScheduleVO.getAgentId())
                                     .sessionId(String.valueOf(System.nanoTime()))
                                     .maxStep(1)
-                                    .build(), new ResponseBodyEmitter());
+                                    .build(),
+                            AgentStreamPublisher.noop());
                 } catch (Exception e) {
                     log.error("任务执行失败", e);
                 }

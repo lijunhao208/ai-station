@@ -29,6 +29,8 @@ AI Agent Station 是一个智能体编排平台，用来把模型、提示词、
 
 ```http
 POST /api/v1/agent/auto_agent
+Authorization: Bearer <login 返回的 token>
+Content-Type: application/json
 ```
 
 ```json
@@ -40,7 +42,7 @@ POST /api/v1/agent/auto_agent
 }
 ```
 
-返回为流式消息，常见阶段包括：分析、执行、监督、总结、完成。
+返回为流式消息，常见阶段包括：分析、执行、监督、总结、完成。无 Token 或 Token 无效时返回 `401`。
 
 ## 配置说明
 
@@ -50,6 +52,17 @@ POST /api/v1/agent/auto_agent
 - `ai-agent-station-python/.env.example`
 
 将示例复制为本地配置后填写你自己的密钥与连接信息即可。
+
+## API 鉴权
+
+管理接口与 Agent 接口（含 `POST /api/v1/agent/auto_agent`）默认需要 JWT：
+
+1. `POST /api/v1/admin/admin-user/login` 登录，响应 `data.token`
+2. 后续请求携带头：`Authorization: Bearer <token>`
+3. 流式对话请用支持自定义 Header 的客户端（如 `fetch`），不要用无法带 Header 的原生 `EventSource`
+4. 新建/更新管理员密码会自动 BCrypt 哈希；历史明文密码在首次登录成功后会自动升级
+
+配置项见 `app.auth.*`（JWT 密钥请用环境变量 `APP_AUTH_JWT_SECRET`）。本地临时关闭：`app.auth.enabled=false`。
 
 ## 快速开始
 

@@ -1,14 +1,13 @@
 package com.aiagent.station.domain.agent.service;
 
+import com.aiagent.station.domain.agent.adapter.port.AgentStreamPublisher;
 import com.aiagent.station.domain.agent.model.entity.ExecuteCommandEntity;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter;
 
 /**
  * Agent 策略调度器接口
- * 2025/9/6 06:54
  */
 public interface IAgentDispatchService {
 
-    void dispatch(ExecuteCommandEntity requestParameter, ResponseBodyEmitter emitter) throws Exception;
+    void dispatch(ExecuteCommandEntity requestParameter, AgentStreamPublisher publisher) throws Exception;
 
 }

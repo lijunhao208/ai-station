@@ -5,6 +5,7 @@ import com.aiagent.station.domain.agent.model.entity.ExecuteCommandEntity;
 import com.aiagent.station.domain.agent.model.valobj.AiAgentClientFlowConfigVO;
 import com.aiagent.station.domain.agent.model.valobj.enums.AiClientTypeEnumVO;
 import com.aiagent.station.domain.agent.service.execute.auto.step.factory.DefaultAutoAgentExecuteStrategyFactory;
+import com.aiagent.station.domain.agent.service.execute.auto.support.AutoAgentCompletionJudge;
 import com.aiagent.station.framework.tree.StrategyHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -51,12 +52,9 @@ public class Step1AnalyzerNode extends AbstractExecuteSupport {
         // 将分析结果保存到动态上下文中，供下一步使用
         dynamicContext.setValue("analysisResult", analysisResult);
 
-        // 检查是否已完成
-        if (analysisResult.contains("任务状态: COMPLETED") ||
-                analysisResult.contains("完成度评估: 100%")) {
+        if (AutoAgentCompletionJudge.isTaskCompleted(analysisResult)) {
             dynamicContext.setCompleted(true);
             log.info("✅ 任务分析显示已完成！");
-            return router(requestParameter, dynamicContext);
         }
 
         return router(requestParameter, dynamicContext);

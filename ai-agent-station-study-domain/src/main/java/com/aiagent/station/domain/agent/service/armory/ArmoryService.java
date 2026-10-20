@@ -10,7 +10,7 @@ import com.aiagent.station.domain.agent.service.armory.node.factory.DefaultArmor
 import com.aiagent.station.framework.tree.StrategyHandler;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;

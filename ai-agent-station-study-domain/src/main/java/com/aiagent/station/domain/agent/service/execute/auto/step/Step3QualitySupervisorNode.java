@@ -5,6 +5,7 @@ import com.aiagent.station.domain.agent.model.entity.ExecuteCommandEntity;
 import com.aiagent.station.domain.agent.model.valobj.AiAgentClientFlowConfigVO;
 import com.aiagent.station.domain.agent.model.valobj.enums.AiClientTypeEnumVO;
 import com.aiagent.station.domain.agent.service.execute.auto.step.factory.DefaultAutoAgentExecuteStrategyFactory;
+import com.aiagent.station.domain.agent.service.execute.auto.support.AutoAgentCompletionJudge;
 import com.aiagent.station.framework.tree.StrategyHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -51,16 +52,22 @@ public class Step3QualitySupervisorNode extends AbstractExecuteSupport {
         // 将监督结果保存到动态上下文中
         dynamicContext.setValue("supervisionResult", supervisionResult);
         
-        // 根据监督结果决定是否需要重新执行
-        if (supervisionResult.contains("是否通过: FAIL")) {
-            log.info("❌ 质量检查未通过，需要重新执行");
-            dynamicContext.setCurrentTask("根据质量监督的建议重新执行任务");
-        } else if (supervisionResult.contains("是否通过: OPTIMIZE")) {
-            log.info("🔧 质量检查建议优化，继续改进");
-            dynamicContext.setCurrentTask("根据质量监督的建议优化执行结果");
-        } else {
-            log.info("✅ 质量检查通过");
-            dynamicContext.setCompleted(true);
+        AutoAgentCompletionJudge.SupervisionVerdict verdict =
+                AutoAgentCompletionJudge.judgeSupervision(supervisionResult);
+        switch (verdict) {
+            case FAIL -> {
+                log.info("❌ 质量检查未通过，需要重新执行");
+                dynamicContext.setCurrentTask("根据质量监督的建议重新执行任务");
+            }
+            case OPTIMIZE -> {
+                log.info("🔧 质量检查建议优化，继续改进");
+                dynamicContext.setCurrentTask("根据质量监督的建议优化执行结果");
+            }
+            case PASS -> {
+                log.info("✅ 质量检查通过");
+                dynamicContext.setCompleted(true);
+            }
+            case UNKNOWN -> log.warn("⚠️ 未能识别质检结论，本轮不标记完成，继续下一轮分析");
         }
         
         // 更新执行历史
