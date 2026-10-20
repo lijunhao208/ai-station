@@ -537,6 +537,9 @@ public class AgentRepository implements IAgentRepository {
     @Override
     public AiAgentVO queryAiAgentByAgentId(String aiAgentId) {
         AiAgent aiAgent = aiAgentDao.queryByAgentId(aiAgentId);
+        if (aiAgent == null) {
+            return null;
+        }
 
         return AiAgentVO.builder()
                 .agentId(aiAgent.getAgentId())

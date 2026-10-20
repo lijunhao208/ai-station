@@ -62,15 +62,34 @@ public abstract class AbstractArmorySupport extends AbstractMultiThreadStrategyR
         BeanDefinition beanDefinition = beanDefinitionBuilder.getRawBeanDefinition();
         beanDefinition.setScope(BeanDefinition.SCOPE_SINGLETON);
 
-        // 如果Bean已存在，先移除
-        if (beanFactory.containsBeanDefinition(beanName)) {
-            beanFactory.removeBeanDefinition(beanName);
+        // 如果 Bean 已存在：先关闭资源（如 McpSyncClient），再移除定义/单例，避免连接泄漏
+        if (beanFactory.containsBean(beanName)) {
+            try {
+                closeQuietly(beanFactory.getBean(beanName));
+            } catch (Exception e) {
+                log.warn("关闭旧 Bean 资源失败 {}: {}", beanName, e.getMessage());
+            }
+            if (beanFactory.containsBeanDefinition(beanName)) {
+                beanFactory.removeBeanDefinition(beanName);
+            } else if (beanFactory.containsSingleton(beanName)) {
+                beanFactory.destroySingleton(beanName);
+            }
         }
 
         // 注册新的Bean
         beanFactory.registerBeanDefinition(beanName, beanDefinition);
 
         log.info("成功注册Bean: {}", beanName);
+    }
+
+    private void closeQuietly(Object bean) {
+        if (bean instanceof AutoCloseable closeable) {
+            try {
+                closeable.close();
+            } catch (Exception e) {
+                log.warn("AutoCloseable.close 失败: {}", e.getMessage());
+            }
+        }
     }
 
     protected <T> T getBean(String beanName) {

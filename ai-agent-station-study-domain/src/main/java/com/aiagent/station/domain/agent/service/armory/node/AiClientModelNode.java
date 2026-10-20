@@ -49,11 +49,16 @@ public class AiClientModelNode extends AbstractArmorySupport {
                 throw new RuntimeException("mode 2 api is null");
             }
 
-            // 获取当前模型关联的 Tool MCP Bean 对象
+            // 获取当前模型关联的 Tool MCP Bean 对象（无 MCP 时按空列表处理）
             List<McpSyncClient> mcpSyncClients = new ArrayList<>();
-            for (String toolMcpId : modelVO.getToolMcpIds()) {
-                McpSyncClient mcpSyncClient = getBean(AiAgentEnumVO.AI_CLIENT_TOOL_MCP.getBeanName(toolMcpId));
-                mcpSyncClients.add(mcpSyncClient);
+            List<String> toolMcpIds = modelVO.getToolMcpIds();
+            if (toolMcpIds != null) {
+                for (String toolMcpId : toolMcpIds) {
+                    McpSyncClient mcpSyncClient = getBean(AiAgentEnumVO.AI_CLIENT_TOOL_MCP.getBeanName(toolMcpId));
+                    if (mcpSyncClient != null) {
+                        mcpSyncClients.add(mcpSyncClient);
+                    }
+                }
             }
 
             // 实例化对话模型（如果有其他模型对接，可以使用 one-api 服务，转换为 openai 模型格式）

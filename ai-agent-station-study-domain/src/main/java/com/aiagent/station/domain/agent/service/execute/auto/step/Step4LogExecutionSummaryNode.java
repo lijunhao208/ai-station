@@ -85,7 +85,11 @@ public class Step4LogExecutionSummaryNode extends AbstractExecuteSupport {
                             .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 50))
                     .call().content();
 
-            assert summaryResult != null;
+            if (summaryResult == null || summaryResult.isBlank()) {
+                log.warn("⚠️ 最终总结返回为空，跳过报告输出");
+                return;
+            }
+
             logFinalReport(dynamicContext, summaryResult, requestParameter.getSessionId());
             
             // 将总结结果保存到动态上下文中

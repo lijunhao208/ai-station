@@ -144,17 +144,21 @@ public class Step4ExecuteStepsNode extends AbstractExecuteSupport {
                     .call()
                     .content();
 
-            assert executionResult != null;
+            if (executionResult == null || executionResult.isBlank()) {
+                throw new IllegalStateException("步骤 " + stepNumber + " LLM 返回为空");
+            }
             log.info("步骤 {} 执行结果: {}", stepNumber, executionResult.substring(0, Math.min(150, executionResult.length())) + "...");
 
             // 保存执行结果
             dynamicContext.setValue("step" + stepNumber + "Result", executionResult);
+
+            String sessionId = dynamicContext.getValue("sessionId");
             
             // 发送步骤执行结果的SSE
             AutoAgentExecuteResultEntity stepResult = AutoAgentExecuteResultEntity.createExecutionResult(
                     stepNumber,
                     stepKey + " 执行完成: " + executionResult.substring(0, Math.min(500, executionResult.length())),
-                    (String) dynamicContext.getValue("sessionId")
+                    sessionId
             );
             sendSseResult(dynamicContext, stepResult);
 

@@ -44,7 +44,13 @@ public class Step2PrecisionExecutorNode extends AbstractExecuteSupport{
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 1024))
                 .call().content();
 
-        assert executionResult != null;
+        if (executionResult == null || executionResult.isBlank()) {
+            log.warn("⚠️ 精准执行返回为空，写入空结果并继续监督/总结");
+            executionResult = "";
+            dynamicContext.setValue("executionResult", executionResult);
+            return router(requestParameter, dynamicContext);
+        }
+
         parseExecutionResult(dynamicContext, executionResult, requestParameter.getSessionId());
         
         // 将执行结果保存到动态上下文中，供下一步使用

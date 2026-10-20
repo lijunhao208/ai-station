@@ -66,6 +66,30 @@ Content-Type: application/json
 
 ## 快速开始
 
-1. 准备 MySQL / PostgreSQL，并导入项目自带的数据库初始化脚本（脚本中的 API Key 请换成你自己的）
-2. 填写本地配置或环境变量（参考上方示例文件）
-3. 启动应用服务
+### 1. 初始化数据库
+
+**MySQL（业务库）**
+
+```bash
+mysql -u root -p < docs/sql/mysql/01-schema.sql
+mysql -u root -p ai-agent-station-study < docs/sql/mysql/02-seed.sql
+```
+
+- 库名默认：`ai-agent-station-study`
+- Seed 默认管理员：`admin` / `admin123`（BCrypt）
+- Seed 中 `ai_client_api.api_key` 为占位符 `YOUR_API_KEY`，请改成你自己的密钥（或通过管理端配置）
+
+**PostgreSQL + pgvector（向量库）**
+
+```bash
+# 先创建库，例如：createdb -U postgres ai-rag-knowledge
+psql -U postgres -d ai-rag-knowledge -f docs/sql/pgvector/init.sql
+```
+
+应用使用的向量表名为 `vector_store_openai`（见 `AiAgentConfig`）。
+
+### 2. 配置并启动
+
+1. 填写本地配置或环境变量（参考上方示例文件：`MYSQL_*`、`PG_*`、`OPENAI_*`、`APP_AUTH_JWT_SECRET`）
+2. 启动应用服务
+3. 登录拿 Token → 装配 Agent（如需要）→ 调用 `POST /api/v1/agent/auto_agent`（示例 `aiAgentId` 为 `"3"`）

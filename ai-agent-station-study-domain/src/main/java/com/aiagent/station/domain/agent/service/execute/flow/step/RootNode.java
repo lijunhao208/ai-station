@@ -36,8 +36,12 @@ public class RootNode extends AbstractExecuteSupport {
         dynamicContext.setExecutionHistory(new StringBuilder());
         // 当前任务信息
         dynamicContext.setCurrentTask(requestParameter.getMessage());
-        // 最大任务步骤
-        dynamicContext.setMaxStep(requestParameter.getMaxStep());
+        // 会话 ID（供后续步骤 SSE 使用）
+        dynamicContext.setValue("sessionId", requestParameter.getSessionId());
+        // 最大任务步骤（Strategy 已设默认值；仅在请求显式传入时覆盖，避免 Integer 拆箱 NPE）
+        if (requestParameter.getMaxStep() != null) {
+            dynamicContext.setMaxStep(requestParameter.getMaxStep());
+        }
 
         return router(requestParameter, dynamicContext);
     }
