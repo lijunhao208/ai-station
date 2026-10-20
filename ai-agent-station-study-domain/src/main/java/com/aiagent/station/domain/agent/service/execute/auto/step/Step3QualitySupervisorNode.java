@@ -28,8 +28,15 @@ public class Step3QualitySupervisorNode extends AbstractExecuteSupport {
         // 从动态上下文中获取执行结果
         String executionResult = dynamicContext.getValue("executionResult");
         if (executionResult == null || executionResult.trim().isEmpty()) {
-            log.warn("⚠️ 执行结果为空，跳过质量监督");
-            return "质量监督跳过";
+            // 空结果无法质检：记入历史并进入总结节点，避免直接 return 导致 Step4 断链
+            log.warn("⚠️ 执行结果为空，跳过质量监督并进入总结阶段");
+            dynamicContext.getExecutionHistory().append(String.format("""
+                    === 第 %d 步完整记录 ===
+                    【执行阶段】(空)
+                    【监督阶段】跳过：执行结果为空
+                    """, dynamicContext.getStep()));
+            dynamicContext.setStep(dynamicContext.getMaxStep() + 1);
+            return router(requestParameter, dynamicContext);
         }
 
         AiAgentClientFlowConfigVO aiAgentClientFlowConfigVO = dynamicContext.getAiAgentClientFlowConfigVOMap().get(AiClientTypeEnumVO.QUALITY_SUPERVISOR_CLIENT.getCode());

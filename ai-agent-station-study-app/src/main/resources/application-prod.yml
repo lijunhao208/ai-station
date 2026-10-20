@@ -12,13 +12,42 @@ thread:
         block-queue-size: 5000
         policy: CallerRunsPolicy
 
-# 生产环境请通过环境变量注入数据源与 API Key，勿将真实密钥写入仓库
-# spring:
-#   datasource:
-#     username: ${MYSQL_USERNAME}
-#     password: ${MYSQL_PASSWORD}
-#     url: ${MYSQL_URL}
-#     driver-class-name: com.mysql.cj.jdbc.Driver
+# 生产环境必须通过环境变量注入，勿写入真实密钥
+spring:
+  datasource:
+    mysql:
+      username: ${MYSQL_USERNAME}
+      password: ${MYSQL_PASSWORD}
+      url: ${MYSQL_URL}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      type: com.zaxxer.hikari.HikariDataSource
+      hikari:
+        pool-name: Prod_MySQL_HikariCP
+        minimum-idle: 5
+        idle-timeout: 180000
+        maximum-pool-size: 25
+        auto-commit: true
+        max-lifetime: 1800000
+        connection-timeout: 30000
+        connection-test-query: SELECT 1
+    pgvector:
+      driver-class-name: org.postgresql.Driver
+      username: ${PG_USERNAME}
+      password: ${PG_PASSWORD}
+      url: ${PG_URL}
+      type: com.zaxxer.hikari.HikariDataSource
+      hikari:
+        maximum-pool-size: 5
+        minimum-idle: 2
+        idle-timeout: 30000
+        connection-timeout: 30000
+  ai:
+    openai:
+      base-url: ${OPENAI_BASE_URL}
+      api-key: ${OPENAI_API_KEY}
+    agent:
+      auto-config:
+        enabled: true
 
 app:
   auth:
@@ -26,6 +55,18 @@ app:
     jwt-secret: ${APP_AUTH_JWT_SECRET}
     token-expire-hours: ${APP_AUTH_TOKEN_EXPIRE_HOURS:12}
     cors-allowed-origins: ${APP_AUTH_CORS_ORIGINS:https://your-frontend.example.com}
+    permit-paths:
+      - /api/v1/admin/admin-user/login
+      - /api/v1/admin/admin-user/validate-login
+  task:
+    job:
+      enabled: true
+      pool-size: 5
+      thread-name-prefix: "prod-task-scheduler-"
+      wait-for-tasks-to-complete-on-shutdown: true
+      await-termination-seconds: 30
+      refresh-interval: 30000
+      clean-invalid-tasks-cron: "0 0/5 * * * ?"
 
 # 日志
 logging:
