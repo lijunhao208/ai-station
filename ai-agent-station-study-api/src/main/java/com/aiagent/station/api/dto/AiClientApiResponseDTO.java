@@ -40,7 +40,7 @@ public class AiClientApiResponseDTO implements Serializable {
     private String baseUrl;
 
     /**
-     * API密钥
+     * API密钥（查询接口返回脱敏值，如 sk-1****abcd）
      */
     private String apiKey;
 

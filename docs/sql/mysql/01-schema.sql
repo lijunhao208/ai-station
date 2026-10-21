@@ -47,7 +47,7 @@ CREATE TABLE `ai_agent` (
   `agent_name` varchar(50) NOT NULL COMMENT '智能体名称',
   `description` varchar(255) DEFAULT NULL COMMENT '描述',
   `channel` varchar(32) DEFAULT NULL COMMENT '渠道类型(agent，chat_stream)',
-  `strategy` varchar(64) DEFAULT NULL COMMENT '执行策略(auto、flow)',
+  `strategy` varchar(64) DEFAULT NULL COMMENT '执行策略 Bean 名(如 autoAgentExecuteStrategy/flowAgentExecuteStrategy/fixedAgentExecuteStrategy)',
   `status` tinyint(1) DEFAULT '1' COMMENT '状态(0:禁用,1:启用)',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -91,11 +91,11 @@ CREATE TABLE `ai_agent_flow_config` (
 
 CREATE TABLE `ai_agent_task_schedule` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
-  `agent_id` bigint NOT NULL COMMENT '智能体ID',
+  `agent_id` varchar(64) NOT NULL COMMENT '智能体业务ID（对应 ai_agent.agent_id）',
   `task_name` varchar(64) DEFAULT NULL COMMENT '任务名称',
   `description` varchar(255) DEFAULT NULL COMMENT '任务描述',
   `cron_expression` varchar(50) NOT NULL COMMENT '时间表达式(如: 0/3 * * * * *)',
-  `task_param` text COMMENT '任务入参配置(JSON格式)',
+  `task_param` text COMMENT '任务入参：纯文本 message，或 JSON{"message":"...","maxStep":3}',
   `status` tinyint(1) DEFAULT '1' COMMENT '状态(0:无效,1:有效)',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

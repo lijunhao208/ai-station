@@ -35,7 +35,7 @@ ai-agent-station-python/
 ### 1. 环境准备
 
 - Python 3.11+
-- MySQL（导入 `docs/dev-ops/mysql/sql/ai-agent-station-study.sql`）
+- MySQL（导入仓库根目录 `docs/sql/mysql/01-schema.sql` 与 `docs/sql/mysql/02-seed.sql`）
 
 ### 2. 安装依赖
 

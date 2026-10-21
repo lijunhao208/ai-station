@@ -4,15 +4,18 @@ import com.aiagent.station.domain.agent.adapter.port.AgentStreamPublisher;
 import com.aiagent.station.domain.agent.adapter.repository.IAgentRepository;
 import com.aiagent.station.domain.agent.model.entity.AutoAgentExecuteResultEntity;
 import com.aiagent.station.domain.agent.model.entity.ExecuteCommandEntity;
+import com.aiagent.station.domain.agent.model.valobj.AiAgentClientFlowConfigVO;
 import com.aiagent.station.domain.agent.model.valobj.enums.AiAgentEnumVO;
 import com.aiagent.station.domain.agent.service.execute.auto.step.factory.DefaultAutoAgentExecuteStrategyFactory;
 import com.aiagent.station.framework.tree.AbstractMultiThreadStrategyRouter;
+import com.aiagent.station.types.exception.BizException;
 import jakarta.annotation.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.context.ApplicationContext;
 
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -39,6 +42,20 @@ public abstract class AbstractExecuteSupport extends AbstractMultiThreadStrategy
 
     protected ChatClient getChatClientByClientId(String clientId) {
         return getBean(AiAgentEnumVO.AI_CLIENT.getBeanName(clientId));
+    }
+
+    /**
+     * 按 clientType 取流程配置；缺失时抛明确业务异常，避免 NPE。
+     */
+    protected AiAgentClientFlowConfigVO requireFlowConfig(
+            DefaultAutoAgentExecuteStrategyFactory.DynamicContext dynamicContext,
+            String clientType) {
+        Map<String, AiAgentClientFlowConfigVO> map = dynamicContext.getAiAgentClientFlowConfigVOMap();
+        AiAgentClientFlowConfigVO config = map == null ? null : map.get(clientType);
+        if (config == null) {
+            throw new BizException("0002", "缺少 Auto Agent 流程配置 clientType=" + clientType);
+        }
+        return config;
     }
 
     protected <T> T getBean(String beanName) {

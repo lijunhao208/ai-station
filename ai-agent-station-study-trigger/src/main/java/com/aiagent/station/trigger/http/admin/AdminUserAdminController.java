@@ -510,16 +510,16 @@ public class AdminUserAdminController implements IAdminUserAdminService {
                         .build();
             }
             
-            // 检查用户状态
-            if (adminUser.getStatus() == 0) {
+            // 检查用户状态（与 login 一致，避免 status 为 null 时 NPE）
+            if (adminUser.getStatus() != null && adminUser.getStatus() == 0) {
                 return Response.<Boolean>builder()
                         .code(ResponseCode.LOGIN_FAILED.getCode())
                         .info("用户已被禁用")
                         .data(false)
                         .build();
             }
-            
-            if (adminUser.getStatus() == 2) {
+
+            if (adminUser.getStatus() != null && adminUser.getStatus() == 2) {
                 return Response.<Boolean>builder()
                         .code(ResponseCode.LOGIN_FAILED.getCode())
                         .info("用户已被锁定")

@@ -39,7 +39,8 @@ public class Step3QualitySupervisorNode extends AbstractExecuteSupport {
             return router(requestParameter, dynamicContext);
         }
 
-        AiAgentClientFlowConfigVO aiAgentClientFlowConfigVO = dynamicContext.getAiAgentClientFlowConfigVOMap().get(AiClientTypeEnumVO.QUALITY_SUPERVISOR_CLIENT.getCode());
+        AiAgentClientFlowConfigVO aiAgentClientFlowConfigVO =
+                requireFlowConfig(dynamicContext, AiClientTypeEnumVO.QUALITY_SUPERVISOR_CLIENT.getCode());
         
         String supervisionPrompt = String.format(aiAgentClientFlowConfigVO.getStepPrompt(), requestParameter.getMessage(), executionResult);
 

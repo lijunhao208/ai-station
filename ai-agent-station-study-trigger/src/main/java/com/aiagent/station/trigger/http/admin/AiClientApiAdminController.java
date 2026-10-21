@@ -366,12 +366,24 @@ public class AiClientApiAdminController implements IAiClientApiAdminService {
     }
 
     /**
-     * PO转DTO对象
+     * PO转DTO对象（查询响应脱敏 apiKey，避免明文回传）
      */
     private AiClientApiResponseDTO convertToAiClientApiResponseDTO(AiClientApi aiClientApi) {
         AiClientApiResponseDTO responseDTO = new AiClientApiResponseDTO();
         BeanUtils.copyProperties(aiClientApi, responseDTO);
+        responseDTO.setApiKey(maskApiKey(aiClientApi.getApiKey()));
         return responseDTO;
+    }
+
+    private static String maskApiKey(String apiKey) {
+        if (!StringUtils.hasText(apiKey)) {
+            return apiKey;
+        }
+        String value = apiKey.trim();
+        if (value.length() <= 8) {
+            return "****";
+        }
+        return value.substring(0, 4) + "****" + value.substring(value.length() - 4);
     }
 
 }
